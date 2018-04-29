@@ -50,6 +50,8 @@ void conforksus_init(int current_height, bool is_regtest)
         // we do all forks at block 500 in regtest mode
         FORK_BLOCK = 500;
     }
+    LogPrintf("conforksus_init: current_height -  %d\n", nHeight );
+
     if (current_height >= FORK_BLOCK) {
         // we are beyond the fork point; use new rules
         fork_conforksus.enable();
