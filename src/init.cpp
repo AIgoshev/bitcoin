@@ -1,4 +1,4 @@
-// Copyright (c) 2009-2010 Satoshi Nakamoto
+conforksus_init: current_height// Copyright (c) 2009-2010 Satoshi Nakamoto
 // Copyright (c) 2009-2016 The Bitcoin Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
@@ -1483,7 +1483,7 @@ bool AppInitMain(boost::thread_group& threadGroup, CScheduler& scheduler)
                 }
 
                 // we have chain tip! apply conforksus modifier if appropriate
-                LogPrintf("conforksus_init: current_height -  %d\n", chainActive.Tip() ? chainActive.Tip()->nHeight : 0 );
+                //LogPrintf("conforksus_init: current_height -  %d\n", chainActive.Tip() ? chainActive.Tip()->nHeight : 0 );
                 conforksus_init(chainActive.Tip() ? chainActive.Tip()->nHeight : 0, Params().NetworkIDString() == "regtest");
                 if (fork_conforksus.active) {
                     // change port from default

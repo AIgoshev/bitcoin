@@ -2909,11 +2909,11 @@ static bool ContextualCheckBlockHeader(const CBlockHeader& block, CValidationSta
     // Skip all checks if
     // (1) the header is beyond our fork point, and
     // (2) we have not yet forked.
-    LogPrintf("ContextualCheckBlockHeader: we have not yet forked %s\n", fork_conforksus.active ? "NO - forkus active" : "YES - not active" );
+   /* LogPrintf("ContextualCheckBlockHeader: we have not yet forked %s\n", fork_conforksus.active ? "NO - forkus active" : "YES - not active" );
     LogPrintf("ContextualCheckBlockHeader: nHeight -  %d\n", nHeight );
-    LogPrintf("ContextualCheckBlockHeader: FORK_BLOCK -  %d\n", FORK_BLOCK );
+    LogPrintf("ContextualCheckBlockHeader: FORK_BLOCK -  %d\n", FORK_BLOCK );*/
     if (!fork_conforksus.active && nHeight > FORK_BLOCK) return true;
-    if (nHeight < 50000) {
+    if (nHeight <= 178537) {
       return true;
     }
 
