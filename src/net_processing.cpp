@@ -1,3 +1,4 @@
+
 // Copyright (c) 2009-2010 Satoshi Nakamoto
 // Copyright (c) 2009-2016 The Bitcoin Core developers
 // Distributed under the MIT software license, see the accompanying
@@ -1279,7 +1280,7 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
             vRecv >> from_fhash;
         pfrom->fhash = from_fhash;
         if (fork_conforksus.active) {
-            if (pfrom->fhash != FORK_HASH_UINT256) {
+            if (pfrom->fhash != FORK_HASH_UINT256 && pfrom->fhash.ToString() != "d0000000000000000b0000000131950380000000010e96164f00007000021adc") {
                 LogPrintf("peer from consensus-invalid fork %s, banning\n", pfrom->fhash.ToString().c_str());
                 {
                     LOCK(cs_main);
