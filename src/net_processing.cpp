@@ -1323,12 +1323,12 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
         if (!vRecv.empty())
             vRecv >> fRelay;
         uint256 from_fhash;
-        UInt256_mobile from_fhash_mobile
+        UInt256_mobile from_fhash_mobile;
         if (!vRecv.empty())
             vRecv >> from_fhash;
         pfrom->fhash = from_fhash;
         if (fork_conforksus.active) {
-            if (pfrom->fhash != FORK_HASH_UINT256 && pfrom->fhash.ToString() != "d0000000000000000b0000000131950380000000010e96164f00007000021adc") {
+            if (pfrom->fhash != FORK_HASH_UINT256) {
                 LogPrintf("peer from consensus-invalid fork %s, banning\n", pfrom->fhash.ToString().c_str());
                 LogPrintf("Size of fork hash %zu, banning\n", sizeof(FORK_HASH_UINT256));
                 {
