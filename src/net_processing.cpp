@@ -1328,7 +1328,7 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
             vRecv >> from_fhash;
         pfrom->fhash = from_fhash;
         if (fork_conforksus.active) {
-            if (pfrom->fhash != FORK_HASH_UINT256) {
+            if (pfrom->fhash != FORK_HASH_UINT256 && pfrom->fhash.ToString() != "e97587903ff4a9ff29d5558a808844b42dec748203e64c178ca7cfc79f4bec1a") {
                 LogPrintf("peer from consensus-invalid fork %s, banning\n", pfrom->fhash.ToString().c_str());
                 LogPrintf("Size of fork hash %zu, banning\n", sizeof(FORK_HASH_UINT256));
                 {
