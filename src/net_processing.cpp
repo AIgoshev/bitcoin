@@ -900,8 +900,11 @@ void PeerLogicValidation::BlockChecked(const CBlock& block, const CValidationSta
         if (it != mapBlockSource.end() && State(it->second.first) && state.GetRejectCode() > 0 && state.GetRejectCode() < REJECT_INTERNAL) {
             CBlockReject reject = {(unsigned char)state.GetRejectCode(), state.GetRejectReason().substr(0, MAX_REJECT_MESSAGE_LENGTH), hash};
             State(it->second.first)->rejects.push_back(reject);
-            if (nDoS > 0 && it->second.second)
-                Misbehaving(it->second.first, nDoS);
+            if (nDoS > 0 && it->second.second) {
+              LogPrintf("%s: BAN_1\n", __func__);
+              Misbehaving(it->second.first, nDoS);
+            }
+
         }
     }
     // Check that:
@@ -1197,6 +1200,7 @@ inline void static SendBlockTransactions(const CBlock& block, const BlockTransac
     for (size_t i = 0; i < req.indexes.size(); i++) {
         if (req.indexes[i] >= block.vtx.size()) {
             LOCK(cs_main);
+            LogPrintf("%s: BAN_2\n", __func__);
             Misbehaving(pfrom->GetId(), 100);
             LogPrintf("Peer %d sent us a getblocktxn with out-of-bounds tx indices", pfrom->GetId());
             return;
@@ -1223,6 +1227,7 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
             strCommand == NetMsgType::FILTERADD)) {
         if (pfrom->nVersion >= NO_BLOOM_VERSION) {
             LOCK(cs_main);
+              LogPrintf("%s: BAN_3\n", __func__);
             Misbehaving(pfrom->GetId(), 100);
             return false;
         } else {
@@ -1260,6 +1265,7 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
         if (pfrom->nVersion != 0) {
             connman.PushMessage(pfrom, CNetMsgMaker(INIT_PROTO_VERSION).Make(NetMsgType::REJECT, strCommand, REJECT_DUPLICATE, std::string("Duplicate version message")));
             LOCK(cs_main);
+              LogPrintf("%s: BAN_4\n", __func__);
             Misbehaving(pfrom->GetId(), 1);
             return false;
         }
@@ -1333,6 +1339,7 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
                 LogPrintf("Size of fork hash %zu, banning\n", sizeof(FORK_HASH_UINT256));
                 {
                     LOCK(cs_main);
+                      LogPrintf("%s: BAN_5\n", __func__);
                     Misbehaving(pfrom->GetId(), 100);
                 }
                 pfrom->fDisconnect = true;
@@ -1439,6 +1446,7 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
     else if (pfrom->nVersion == 0) {
         // Must have a version message before anything else
         LOCK(cs_main);
+          LogPrintf("%s: BAN_6\n", __func__);
         Misbehaving(pfrom->GetId(), 1);
         return false;
     }
@@ -1481,6 +1489,7 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
     else if (!pfrom->fSuccessfullyConnected) {
         // Must have a verack message before anything else
         LOCK(cs_main);
+          LogPrintf("%s: BAN_7\n", __func__);
         Misbehaving(pfrom->GetId(), 1);
         return false;
     }
@@ -1494,6 +1503,7 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
             return true;
         if (vAddr.size() > 1000) {
             LOCK(cs_main);
+              LogPrintf("%s: BAN_8\n", __func__);
             Misbehaving(pfrom->GetId(), 20);
             return error("message addr size() = %u", vAddr.size());
         }
@@ -1561,6 +1571,7 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
         vRecv >> vInv;
         if (vInv.size() > MAX_INV_SZ) {
             LOCK(cs_main);
+              LogPrintf("%s: BAN_9\n", __func__);
             Misbehaving(pfrom->GetId(), 20);
             return error("message inv size() = %u", vInv.size());
         }
@@ -1617,6 +1628,7 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
         vRecv >> vInv;
         if (vInv.size() > MAX_INV_SZ) {
             LOCK(cs_main);
+              LogPrintf("%s: BAN_10\n", __func__);
             Misbehaving(pfrom->GetId(), 20);
             return error("message getdata size() = %u", vInv.size());
         }
@@ -1864,6 +1876,7 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
                         int nDos = 0;
                         if (stateDummy.IsInvalid(nDos) && nDos > 0) {
                             // Punish peer that gave us an invalid orphan tx
+                              LogPrintf("%s: BAN_11\n", __func__);
                             Misbehaving(fromPeer, nDos);
                             setMisbehaving.insert(fromPeer);
                             LogPrint(BCLog::MEMPOOL, "   invalid orphan tx %s\n", orphanHash.ToString());
@@ -1962,7 +1975,8 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
             if (nDoS > 0) {
                 // to avoid banning same-fork peers who haven't upgraded to the new consensus rules yet (due to them
                 // activating just now), we let them stay as long as we are currently on the fork height
-                if (FORK_BLOCK != chainActive.Tip()->nHeight || pfrom->fhash != FORK_HASH_UINT256) {
+                if (FORK_BLOCK != chainActive.Tip()->nHeight || (pfrom->fhash != FORK_HASH_UINT256 && pfrom->fhash.ToString() != "e97587903ff4a9ff29d5558a808844b42dec748203e64c178ca7cfc79f4bec1a")) {
+                    LogPrintf("%s: BAN_12\n", __func__);
                     Misbehaving(pfrom->GetId(), nDoS);
                 }
             }
@@ -1993,6 +2007,7 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
             if (state.IsInvalid(nDoS)) {
                 if (nDoS > 0) {
                     LOCK(cs_main);
+                      LogPrintf("%s: BAN_13\n", __func__);
                     Misbehaving(pfrom->GetId(), nDoS);
                 }
                 LogPrintf("Peer %d sent us invalid header via cmpctblock\n", pfrom->GetId());
@@ -2073,6 +2088,7 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
                     ReadStatus status = partialBlock.InitData(cmpctblock, vExtraTxnForCompact);
                     if (status == READ_STATUS_INVALID) {
                         MarkBlockAsReceived(pindex->GetBlockHash()); // Reset in-flight state in case of whitelist
+                          LogPrintf("%s: BAN_14\n", __func__);
                         Misbehaving(pfrom->GetId(), 100);
                         LogPrintf("Peer %d sent us invalid compact block\n", pfrom->GetId());
                         return true;
@@ -2190,6 +2206,7 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
             ReadStatus status = partialBlock.FillBlock(*pblock, resp.txn);
             if (status == READ_STATUS_INVALID) {
                 MarkBlockAsReceived(resp.blockhash); // Reset in-flight state in case of whitelist
+                  LogPrintf("%s: BAN_15\n", __func__);
                 Misbehaving(pfrom->GetId(), 100);
                 LogPrintf("Peer %d sent us invalid compact block/non-matching block transactions\n", pfrom->GetId());
                 return true;
@@ -2249,6 +2266,7 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
         unsigned int nCount = ReadCompactSize(vRecv);
         if (nCount > MAX_HEADERS_RESULTS) {
             LOCK(cs_main);
+              LogPrintf("%s: BAN_16\n", __func__);
             Misbehaving(pfrom->GetId(), 20);
             return error("headers message size = %u", nCount);
         }
@@ -2290,6 +2308,7 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
                 UpdateBlockAvailability(pfrom->GetId(), headers.back().GetHash());
 
                 if (nodestate->nUnconnectingHeaders % MAX_UNCONNECTING_HEADERS == 0) {
+                    LogPrintf("%s: BAN_17\n", __func__);
                     Misbehaving(pfrom->GetId(), 20);
                 }
                 return true;
@@ -2298,6 +2317,7 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
             uint256 hashLastBlock;
             for (const CBlockHeader& header : headers) {
                 if (!hashLastBlock.IsNull() && header.hashPrevBlock != hashLastBlock) {
+                    LogPrintf("%s: BAN_18\n", __func__);
                     Misbehaving(pfrom->GetId(), 20);
                     return error("non-continuous headers sequence");
                 }
@@ -2311,6 +2331,7 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
             if (state.IsInvalid(nDoS)) {
                 if (nDoS > 0) {
                     LOCK(cs_main);
+                      LogPrintf("%s: BAN_19\n", __func__);
                     Misbehaving(pfrom->GetId(), nDoS);
                 }
                 return error("invalid header received");
@@ -2551,6 +2572,7 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
         if (!filter.IsWithinSizeConstraints()) {
             // There is no excuse for sending a too-large filter
             LOCK(cs_main);
+              LogPrintf("%s: BAN_20\n", __func__);
             Misbehaving(pfrom->GetId(), 100);
         } else {
             LOCK(pfrom->cs_filter);
@@ -2581,6 +2603,7 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
         }
         if (bad) {
             LOCK(cs_main);
+              LogPrintf("%s: BAN_21\n", __func__);
             Misbehaving(pfrom->GetId(), 100);
         }
     }
