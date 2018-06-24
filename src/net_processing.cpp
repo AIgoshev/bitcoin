@@ -1974,9 +1974,9 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
                                                state.GetRejectReason().substr(0, MAX_REJECT_MESSAGE_LENGTH), inv.hash));
             if (nDoS > 0) {
                 // to avoid banning same-fork peers who haven't upgraded to the new consensus rules yet (due to them
-                // activating just now), we let them stay as long as we are currently on the fork height
-                if (FORK_BLOCK != chainActive.Tip()->nHeight || (pfrom->fhash != FORK_HASH_UINT256 && pfrom->fhash.ToString() != "e97587903ff4a9ff29d5558a808844b42dec748203e64c178ca7cfc79f4bec1a")) {
-                  LogPrintf("peer from consensus-invalid fork %s, banning\n", pfrom->fhash.ToString().c_str());
+                // activating just now), we let them stay as long as we are currently on the fork height e97587903ff4a9ff29d5558a808844b42dec748203e64c178ca7cfc79f4bec1a
+                if (FORK_BLOCK != chainActive.Tip()->nHeight || (pfrom->fhash != FORK_HASH_UINT256 && pfrom->fhash.ToString() != "e97587903ff4a9ff29d5558a808844b42dec748203e64c178ca7cfc79f4bec1a")) {//
+                  LogPrintf("peer from consensus-invalid fork %s, banning, %d\n", pfrom->fhash.ToString().c_str(), chainActive.Tip()->nHeight);
                     LogPrintf("%s: BAN_12\n", __func__);
                     Misbehaving(pfrom->GetId(), nDoS);
                 }
